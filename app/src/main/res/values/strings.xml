@@ -1,7 +1,30 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Clean VIT</string>
-    <string name="title_activity_maps">Map</string>
 
+    <!-- Strings related to login -->
+    <string name="prompt_email">Email</string>
+    <string name="prompt_password">Password (optional)</string>
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="error_invalid_email">This email address is invalid</string>
+    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_incorrect_password">This password is incorrect</string>
+    <string name="error_field_required">This field is required</string>
+    <string name="permission_rationale">"Contacts permissions are needed for providing email
+        completions."
+    </string>
+    <string name="firebase_url">https://radiant-inferno-7381.firebaseio.com/
+    </string>
+    <string name="action_logout">Logout</string>
+    <string name="prompt_description">Description</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="label_latitude">Latitude</string>
+    <string name="label_longitude">Longitude</string>
+    <string name="label_spot_address">Spot</string>
+    <string name="label_description">Description</string>
+    <string name="label_host">Host</string>
+    <string name="action_mark_clean">Mark as clean</string>
+    <string name="label_cleanedby">Cleaned by</string>
+    <string name="action_mark_remove">Remove Marker</string>
+    <string name="title_activity_maps">Clean VIT</string>
 </resources>

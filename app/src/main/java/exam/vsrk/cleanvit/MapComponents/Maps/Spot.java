@@ -23,6 +23,7 @@ public class Spot implements Serializable {
     private String status;
     private String description;
     private String cleanedBy;
+    private String place;
 
     public Spot(String id,Marker marker, String ownerId, String ownerName, String imageUrl) {
         this.spotId=id;
@@ -97,5 +98,13 @@ public class Spot implements Serializable {
 
     public void setCleanedBy(String cleanedBy) {
         this.cleanedBy = cleanedBy;
+    }
+
+    public String getPlace() {
+        return place;
+    }
+
+    public void setPlace(String place) {
+        this.place = place;
     }
 }

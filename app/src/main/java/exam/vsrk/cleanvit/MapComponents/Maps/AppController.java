@@ -23,6 +23,5 @@ public class AppController extends Application {
         Firebase.setAndroidContext(this);
        /* Create the Firebase ref that is used for all authentication with Firebase */
         mFirebaseRef = new Firebase(getResources().getString(R.string.firebase_url));
-
     }
 }

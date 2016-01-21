@@ -3,17 +3,22 @@ package exam.vsrk.cleanvit.MapComponents.Maps.DistanceNotifications;
 /**
  * Created by VSRK on 1/1/2016.
  */
+
+import android.Manifest;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 
 import com.firebase.client.ChildEventListener;
@@ -31,40 +36,107 @@ import java.util.Map;
 import exam.vsrk.cleanvit.MapComponents.Maps.MainActivity;
 import exam.vsrk.cleanvit.R;
 
-public class LocationService extends Service
-{
-    IBinder mBinder = new LocalBinder();
+public class LocationService extends BroadcastReceiver {
 
     private static final String TAG = "BOOMBOOMTESTGPS";
     private LocationManager mLocationManager = null;
     private static final int LOCATION_INTERVAL = 1000;
     private static final float LOCATION_DISTANCE = 10f;
+    private Context con;
 
 
     final Firebase ref = new Firebase("https://radiant-inferno-7381.firebaseio.com/");
 
-    GeoFire geoFire=new GeoFire(new Firebase("https://radiant-inferno-7381.firebaseio.com/markers/"));
+    GeoFire geoFire = new GeoFire(new Firebase("https://radiant-inferno-7381.firebaseio.com/markers/"));
     GeoQuery geoQuery = geoFire.queryAtLocation(INITIAL_CENTER, 1);
 
 
     private static GeoLocation INITIAL_CENTER = new GeoLocation(26.204675, 78.191340);
     LatLng latLngCenter = new LatLng(INITIAL_CENTER.latitude, INITIAL_CENTER.longitude);
-    private class LocationListener implements android.location.LocationListener
-    {
+
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        Firebase.setAndroidContext(context);
+        con=context;
+        Bundle extras=intent.getExtras();
+        Location location=(Location)extras.get("KEY_STATE_CHANGED");
+        updateLocation(location);
+    }
+
+    private void updateLocation(Location location) {
+
+        final double USER_LATITUDE = location.getLatitude();
+        final double USER_LONGITUDE = location.getLongitude();
+        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+            @Override
+            public void onKeyEntered(String key, GeoLocation location) {
+                double DIRT_LATITUDE = location.latitude;
+                double DIRT_LONGITUDE = location.longitude;
+                DistanceCalculator calculator = new DistanceCalculator();
+                //        calculator.CalculationByDistance((Double)
+
+                double dist = calculator.CalculationByDistance(USER_LATITUDE, DIRT_LATITUDE, USER_LONGITUDE, DIRT_LONGITUDE);
+                Log.v("DISTANCE", String.valueOf(dist));
+                if (dist > 0.007) {
+                    Log.v("NOTIFY_BUILDER", "Notifications building");
+                    int icon = R.drawable.ic_launcher;
+                    long when = System.currentTimeMillis();
+                    NotificationManager nm = (NotificationManager) con.getSystemService(Context.NOTIFICATION_SERVICE);
+                    Intent intent = new Intent(con, MainActivity.class);
+                    PendingIntent pending = PendingIntent.getActivity(con, 0, intent, 0);
+                    Notification notification;
+
+                    notification = new Notification.Builder(con)
+                            .setContentTitle("Clean VIT")
+                            .setContentText(
+                                    "There is a dirt just 5m near your current location Explore out in Clean VIT").setSmallIcon(R.drawable.ic_launcher)
+                            .setContentIntent(pending).setWhen(when).setAutoCancel(true)
+                            .build();
+
+                    notification.flags |= Notification.FLAG_AUTO_CANCEL;
+                    notification.defaults |= Notification.DEFAULT_SOUND;
+                    nm.notify(0, notification);
+
+                }
+            }
+
+            @Override
+            public void onKeyExited(String key) {
+
+            }
+
+            @Override
+            public void onKeyMoved(String key, GeoLocation location) {
+
+            }
+
+            @Override
+            public void onGeoQueryReady() {
+
+            }
+
+            @Override
+            public void onGeoQueryError(FirebaseError error) {
+
+            }
+        });
+
+
+    }
+
+   /* private class LocationListener implements android.location.LocationListener {
         Location mLastLocation;
 
-        public LocationListener(String provider)
-        {
+        public LocationListener(String provider) {
             Log.e(TAG, "LocationListener " + provider);
             mLastLocation = new Location(provider);
         }
 
         @Override
-        public void onLocationChanged(final Location location)
-        {
+        public void onLocationChanged(final Location location) {
             Log.e(TAG, "onLocationChanged: " + location);
 
-           // Toast.makeText(getApplicationContext(),String.valueOf(location.getLatitude()),Toast.LENGTH_SHORT).show();
+            // Toast.makeText(getApplicationContext(),String.valueOf(location.getLatitude()),Toast.LENGTH_SHORT).show();
   /*          geoFire.getLocation("-464831238",new LocationCallback() {
                 @Override
                 public void onLocationResult(String key, GeoLocation location) {
@@ -86,106 +158,37 @@ public class LocationService extends Service
                 }
             });
             */
-            final double USER_LATITUDE=location.getLatitude();
-            final double USER_LONGITUDE=location.getLongitude();
-            geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
-                @Override
-                public void onKeyEntered(String key, GeoLocation location) {
-                    double DIRT_LATITUDE = location.latitude;
-                    double DIRT_LONGITUDE = location.longitude;
-                    DistanceCalculator calculator = new DistanceCalculator();
-                    //        calculator.CalculationByDistance((Double)
 
-                    double dist = calculator.CalculationByDistance(USER_LATITUDE, DIRT_LATITUDE, USER_LONGITUDE, DIRT_LONGITUDE);
-                    Log.v("DISTANCE", String.valueOf(dist));
-                    if (dist < 0.007) {
-                        Log.v("NOTIFY_BUILDER", "Notifications building");
-                        int icon = R.drawable.ic_launcher;
-                        long when = System.currentTimeMillis();
-                        NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-                        Intent intent = new Intent(LocationService.this, MainActivity.class);
-                        PendingIntent pending = PendingIntent.getActivity(LocationService.this, 0, intent, 0);
-                        Notification notification;
-
-                        notification = new Notification.Builder(LocationService.this)
-                                .setContentTitle("Clean VIT")
-                                .setContentText(
-                                        "There is a dirt just 5m near your current location Explore out in Clean VIT").setSmallIcon(R.drawable.ic_launcher)
-                                .setContentIntent(pending).setWhen(when).setAutoCancel(true)
-                                .build();
-
-                        notification.flags |= Notification.FLAG_AUTO_CANCEL;
-                        notification.defaults |= Notification.DEFAULT_SOUND;
-                        nm.notify(0, notification);
-
-                    }
-                }
-
-                @Override
-                public void onKeyExited(String key) {
-
-                }
-
-                @Override
-                public void onKeyMoved(String key, GeoLocation location) {
-
-                }
-
-                @Override
-                public void onGeoQueryReady() {
-
-                }
-
-                @Override
-                public void onGeoQueryError(FirebaseError error) {
-
-                }
-            });
-
-
-
-
-
-
-
-
-
-            mLastLocation.set(location);
-        }
-
+//        }
+/*
         @Override
-        public void onProviderDisabled(String provider)
-        {
+        public void onProviderDisabled(String provider) {
             Log.e(TAG, "onProviderDisabled: " + provider);
         }
 
         @Override
-        public void onProviderEnabled(String provider)
-        {
+        public void onProviderEnabled(String provider) {
             Log.e(TAG, "onProviderEnabled: " + provider);
         }
 
         @Override
-        public void onStatusChanged(String provider, int status, Bundle extras)
-        {
+        public void onStatusChanged(String provider, int status, Bundle extras) {
             Log.e(TAG, "onStatusChanged: " + provider);
         }
     }
 
-    LocationListener[] mLocationListeners = new LocationListener[] {
+    LocationListener[] mLocationListeners = new LocationListener[]{
             new LocationListener(LocationManager.GPS_PROVIDER),
             new LocationListener(LocationManager.NETWORK_PROVIDER)
     };
 
     @Override
-    public IBinder onBind(Intent arg0)
-    {
+    public IBinder onBind(Intent arg0) {
         return null;
     }
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId)
-    {
+    public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(TAG, "onStartCommand");
         return super.onStartCommand(intent, flags, startId);
 
@@ -193,8 +196,7 @@ public class LocationService extends Service
     }
 
     @Override
-    public void onCreate()
-    {
+    public void onCreate() {
         Log.e(TAG, "onCreate");
         Firebase.setAndroidContext(this);
         initializeLocationManager();
@@ -218,14 +220,23 @@ public class LocationService extends Service
         }
     }
 
-    @Override
-    public void onDestroy()
-    {
+   /* @Override
+    public void onDestroy() {
         Log.e(TAG, "onDestroy");
         super.onDestroy();
         if (mLocationManager != null) {
             for (int i = 0; i < mLocationListeners.length; i++) {
                 try {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                        // TODO: Consider calling
+                        //    ActivityCompat#requestPermissions
+                        // here to request the missing permissions, and then overriding
+                        //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                        //                                          int[] grantResults)
+                        // to handle the case where the user grants the permission. See the documentation
+                        // for ActivityCompat#requestPermissions for more details.
+                        return;
+                    }
                     mLocationManager.removeUpdates(mLocationListeners[i]);
                 } catch (Exception ex) {
                     Log.i(TAG, "fail to remove location listners, ignore", ex);
@@ -240,10 +251,11 @@ public class LocationService extends Service
             mLocationManager = (LocationManager) getApplicationContext().getSystemService(Context.LOCATION_SERVICE);
         }
     }
+
     public class LocalBinder extends Binder {
         public LocationService getServerInstance() {
             return LocationService.this;
         }
-    }
+    }*/
 
 }

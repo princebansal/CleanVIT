@@ -3,22 +3,25 @@ package exam.vsrk.cleanvit.MapComponents.Maps;
 /**
  * Created by VSRK on 12/31/2015.
  */
+
+import android.annotation.TargetApi;
 import android.app.AlertDialog;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 
 import exam.vsrk.cleanvit.MapComponents.Maps.DistanceNotifications.LocationService;
-import exam.vsrk.cleanvit.MapComponents.Maps.DistanceNotifications.LocationService.LocalBinder;
 
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -38,6 +41,7 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.firebase.client.snapshot.DoubleNode;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
@@ -47,21 +51,26 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.*;
 import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import exam.vsrk.cleanvit.MapComponents.Maps.FireBaseUI.RemovedSpotsActivity;
+import exam.vsrk.cleanvit.MapComponents.Maps.FireBaseUI.AllSpotsActivity;
 import exam.vsrk.cleanvit.R;
 
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
+import static android.Manifest.permission.READ_CONTACTS;
 import static exam.vsrk.cleanvit.MapComponents.Maps.AppController.mAuthData;
 import static exam.vsrk.cleanvit.MapComponents.Maps.AppController.mFirebaseRef;
-
 
 
 public class MainActivity extends AppCompatActivity implements GeoQueryEventListener,
@@ -69,15 +78,18 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
         GoogleApiClient.OnConnectionFailedListener, LocationListener, GoogleMap.OnMarkerDragListener, GoogleMap.OnMapLongClickListener, SlidingUpPanelLayout.PanelSlideListener, GoogleMap.OnMapClickListener, View.OnClickListener, GoogleMap.InfoWindowAdapter, GoogleMap.OnInfoWindowClickListener {
 
 
-    private static final LatLng NEBOUND = new LatLng(26.238599, 78.218381);
-    private static final LatLng SWBOUND = new LatLng(26.176706, 78.129734);
+    private static final int REQUEST_ACCESS_COARSE_LOCATION = 0;
+    private static final int REQUEST_ACCESS_FINE_LOCATION = 1;
+    private static final LatLng NEBOUND = new LatLng(12.976415, 79.165004);
+    private static final LatLng SWBOUND = new LatLng(12.968218, 79.155284);
     private static final LatLngBounds MAPBOUNDARY = new LatLngBounds(SWBOUND, NEBOUND);
-    private LatLng lastCenter = new LatLng(26.2076525, 78.1740575);
+    public static int POSITION_REDIRECT_CODE = 9;
+    private LatLng lastCenter = new LatLng(12.971883, 79.159145);
 
 
-    private static GeoLocation INITIAL_CENTER = new GeoLocation(26.204675, 78.191340);
+    private static GeoLocation INITIAL_CENTER = new GeoLocation(12.971883, 79.159145);
     private static final int INITIAL_ZOOM_LEVEL = 19;
-    private static final String GEO_FIRE_REF = "https://scorching-fire-2211.firebaseio.com/markers/";
+    private static final String GEO_FIRE_REF = "https://radiant-inferno-7381.firebaseio.com/markers/";
 
     private boolean mRequestingLocationUpdates;
     private String tempAddSpotDes = null;
@@ -151,7 +163,9 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
             @Override
             public void onClick(View v) {
                 if (mGoogleApiClient != null && mGoogleApiClient.isConnected()) {
+
                     startLocationUpdates();
+
                 }
             }
         });
@@ -189,11 +203,7 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
 
         if (mGoogleApiClient != null)
             mGoogleApiClient.connect();
-        Intent serviceIntent = new Intent(MainActivity.this,LocationService.class);
-        startService(serviceIntent);
-
     }
-
 
 
     @Override
@@ -216,7 +226,6 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
     }
 
 
-
     @Override
     protected void onPause() {
         super.onPause();
@@ -233,8 +242,7 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
                 LocationServices.FusedLocationApi.removeLocationUpdates(
                         mGoogleApiClient, this);
             }
-        }catch (Exception e)
-        {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -251,6 +259,7 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
                 final String owner = (String) dataSnapshot.child("owner").getValue();
                 final String status = (String) dataSnapshot.child("status").getValue();
                 final String description = (String) dataSnapshot.child("description").getValue();
+                final String place = (String) dataSnapshot.child("place").getValue();
                 String cleanedBy = null;
                 try {
                     if (status.equals(Spot.SPOT_CLEANED)) {
@@ -261,8 +270,7 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
                         marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE));
 
                     }
-                }catch (NullPointerException exc)
-                {
+                } catch (NullPointerException exc) {
                     exc.printStackTrace();
                 }
                 final String finalCleanedBy = cleanedBy;
@@ -277,9 +285,9 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
                             s.setDescription(description);
                             s.setStatus(status);
                             s.setCleanedBy(finalCleanedBy);
+                            s.setPlace(place);
                             markers.put(key, s);
-                        }catch(NullPointerException exc)
-                        {
+                        } catch (NullPointerException exc) {
                             exc.printStackTrace();
                         }
                     }
@@ -433,14 +441,16 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
     @Override
     public void onConnected(Bundle bundle) {
         Log.d("onconnected", "onconnected");
-        if (mLastLocation == null) {
-            mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if(mayRequestLocation()) {
+            if (mLastLocation == null) {
+                mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 
-            updateUI();
-        }
+                updateUI();
+            }
 
-        if (mRequestingLocationUpdates) {
-            startLocationUpdates();
+            if (mRequestingLocationUpdates) {
+                startLocationUpdates();
+            }
         }
     }
 
@@ -512,21 +522,43 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
         map.put("owner", mAuthData.getUid());
         map.put("description", tempAddSpotDes);
         map.put("status", "dirty");
+        String place = null;
 
-        //object.put(String.valueOf(location.hashCode()),map);
-        mFirebaseRef.child("markers/" + location.hashCode()).updateChildren(map, new Firebase.CompletionListener() {
-            @Override
-            public void onComplete(FirebaseError firebaseError, Firebase firebase) {
-                if (firebaseError != null) {
-                    Log.d("fireBaseError", firebaseError.getMessage());
-
-
-                    showMessage("Failed");
-                } else {
-                    showMessage("Added");
+        try {
+            Geocoder geocoder = new Geocoder(this);
+            List<Address> addressList = geocoder.getFromLocation(location.latitude, location.longitude, 1);
+            if (addressList != null) {
+                if (addressList.size() != 0) {
+                    Address address = addressList.get(0);
+                    place = address.getAddressLine(0) + ", " + address.getAddressLine(1) + ", " + address.getAddressLine(2);
                 }
             }
-        });
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+
+            if (place == null) {
+                map.put("place", "Not Provided");
+            } else {
+                map.put("place", place);
+            }
+
+
+            //object.put(String.valueOf(location.hashCode()),map);
+            mFirebaseRef.child("markers/" + location.hashCode()).updateChildren(map, new Firebase.CompletionListener() {
+                @Override
+                public void onComplete(FirebaseError firebaseError, Firebase firebase) {
+                    if (firebaseError != null) {
+                        Log.d("fireBaseError", firebaseError.getMessage());
+
+
+                        showMessage("Failed");
+                    } else {
+                        showMessage("Added");
+                    }
+                }
+            });
+        }
     }
 
 
@@ -550,10 +582,9 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if(id==R.id.removed_spots)
-        {
-            Intent intent=new Intent(MainActivity.this, RemovedSpotsActivity.class);
-            startActivity(intent);
+        if (id == R.id.removed_spots) {
+            Intent intent = new Intent(MainActivity.this, AllSpotsActivity.class);
+            startActivityForResult(intent, POSITION_REDIRECT_CODE);
         }
         if (id == R.id.action_logout) {
             logout();
@@ -575,6 +606,24 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
             startActivity(new Intent(this, LoginActivity.class));
             finish();
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == POSITION_REDIRECT_CODE) {
+                Log.d("pop", "pop");
+                try {
+                    String lat = data.getStringExtra("lat");
+                    String lon = data.getStringExtra("lon");
+                    map.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(Double.parseDouble(lat), Double.parseDouble(lon)), 19));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
     }
 
     @Override
@@ -641,10 +690,11 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
         this.markers.put(String.valueOf(latLng.hashCode()), new Spot(String.valueOf(latLng.hashCode()), marker, mAuthData.getUid(), (String) mAuthData.getProviderData().get("email"), null));
         //addSpot(latLng, String.valueOf(latLng.hashCode()));
         tempMarkerId = String.valueOf(latLng.hashCode());
-        slidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
-
         panelViewMarker.setVisibility(LinearLayout.GONE);
         panelAddMarker.setVisibility(LinearLayout.VISIBLE);
+
+        slidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.EXPANDED);
+
 
     }
 
@@ -756,7 +806,7 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
                 Log.d("markerEqualInfoWindow", s.getOwnerName());
                 ((TextView) findViewById(R.id.marker_latitude)).setText(String.valueOf(marker.getPosition().latitude));
                 ((TextView) findViewById(R.id.marker_longitude)).setText(String.valueOf(marker.getPosition().longitude));
-                ((TextView) findViewById(R.id.marker_spot_address)).setText("SMV");
+                ((TextView) findViewById(R.id.marker_spot_address)).setText(s.getPlace());
                 ((TextView) findViewById(R.id.marker_host)).setText(s.getOwnerName());
                 ((TextView) findViewById(R.id.marker_description)).setText(s.getDescription());
                 if (s.getStatus().equals(Spot.SPOT_CLEANED)) {
@@ -777,7 +827,7 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
                 ((Button) findViewById(R.id.spot_cleaned_button)).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Log.v("CLEAN_PROGRESS","Started Cleaning");
+                        Log.v("CLEAN_PROGRESS", "Started Cleaning");
                         slidingUpPanelLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
 
                         Map<String, Object> updateMap = new HashMap<String, Object>();
@@ -817,6 +867,59 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
                     }
                 });
                 break;
+            }
+        }
+    }
+
+    private boolean mayRequestLocation() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        }
+        if (checkSelfPermission(ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED &&
+                checkSelfPermission(ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        }
+        if (shouldShowRequestPermissionRationale(ACCESS_COARSE_LOCATION)) {
+            Snackbar.make(mainLayout, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(android.R.string.ok, new View.OnClickListener() {
+                        @Override
+                        @TargetApi(Build.VERSION_CODES.M)
+                        public void onClick(View v) {
+                            requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, REQUEST_ACCESS_COARSE_LOCATION);
+                        }
+                    });
+        } else {
+            requestPermissions(new String[]{ACCESS_COARSE_LOCATION}, REQUEST_ACCESS_COARSE_LOCATION);
+        }
+
+        return false;
+    }
+
+    /**
+     * Callback received when a permissions request has been completed.
+     */
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_ACCESS_COARSE_LOCATION) {
+            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    if (shouldShowRequestPermissionRationale(ACCESS_FINE_LOCATION)) {
+                        Snackbar.make(mainLayout, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
+                                .setAction(android.R.string.ok, new View.OnClickListener() {
+                                    @Override
+                                    @TargetApi(Build.VERSION_CODES.M)
+                                    public void onClick(View v) {
+                                        requestPermissions(new String[]{ACCESS_FINE_LOCATION}, REQUEST_ACCESS_FINE_LOCATION);
+                                    }
+                                });
+                    } else {
+                        requestPermissions(new String[]{ACCESS_FINE_LOCATION}, REQUEST_ACCESS_FINE_LOCATION);
+                    }
+                }
+            }
+            if (requestCode == REQUEST_ACCESS_FINE_LOCATION) {
+
             }
         }
     }

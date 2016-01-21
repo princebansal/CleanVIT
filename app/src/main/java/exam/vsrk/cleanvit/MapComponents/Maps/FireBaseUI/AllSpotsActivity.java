@@ -1,5 +1,7 @@
 package exam.vsrk.cleanvit.MapComponents.Maps.FireBaseUI;
 
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -7,24 +9,21 @@ import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
-import com.firebase.client.ChildEventListener;
-import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.ValueEventListener;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
-import com.firebase.geofire.GeoQueryEventListener;
-import com.firebase.geofire.LocationCallback;
 import com.firebase.ui.FirebaseRecyclerAdapter;
 import com.google.android.gms.maps.model.LatLng;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
+import exam.vsrk.cleanvit.MapComponents.Maps.MainActivity;
+import exam.vsrk.cleanvit.MapComponents.Maps.Spot;
 import exam.vsrk.cleanvit.R;
 
 import static exam.vsrk.cleanvit.MapComponents.Maps.AppController.mFirebaseRef;
@@ -32,29 +31,27 @@ import static exam.vsrk.cleanvit.MapComponents.Maps.AppController.mFirebaseRef;
 /**
  * Created by VSRK on 12/31/2015.
  */
-public class RemovedSpotsActivity extends AppCompatActivity {
+public class AllSpotsActivity extends AppCompatActivity {
+
+    private RecyclerView recycler;
 
     private FirebaseRecyclerAdapter mAdapter;
-    List<RemovedSpotItems> removedSpots;
-  private static GeoLocation INITIAL_CENTER = new GeoLocation(26.204675, 78.191340);
-    LatLng latLngCenter = new LatLng(INITIAL_CENTER.latitude, INITIAL_CENTER.longitude);
+    List<SpotItem> removedSpots;
+
+
     @Override
     protected void onCreate(Bundle s) {
 
         super.onCreate(s);
-        setContentView(R.layout.removed_spots_list);
+        setContentView(R.layout.activity_all_spots);
 
 
         Firebase.setAndroidContext(this);
-        final Firebase mFirebaseRef=new Firebase(getResources().getString(R.string.firebase_url));
-        GeoFire geoFire=new GeoFire(new Firebase("https://radiant-inferno-7381.firebaseio.com/markers/"));
-        GeoQuery geoQuery = geoFire.queryAtLocation(INITIAL_CENTER, 1);
-        removedSpots=new ArrayList<>();
 
-       final RecyclerView recycler = (RecyclerView) findViewById(R.id.recycler_view);
-       recycler.setHasFixedSize(true);
-       recycler.setLayoutManager(new LinearLayoutManager(this));
-
+        recycler = (RecyclerView) findViewById(R.id.recycler_view);
+        recycler.setHasFixedSize(true);
+        recycler.setLayoutManager(new LinearLayoutManager(this));
+/*
         geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(final String key, GeoLocation location) {
@@ -76,8 +73,6 @@ public class RemovedSpotsActivity extends AppCompatActivity {
                         removedSpots.add(items);
 
 
-
-
                     }
 
                     public void onChildChanged(DataSnapshot dataSnapshot, String s) {
@@ -97,7 +92,7 @@ public class RemovedSpotsActivity extends AppCompatActivity {
 
             @Override
             public void onKeyExited(String key) {
-                       System.out.println("Key :" + key);
+                System.out.println("Key :" + key);
             }
 
             @Override
@@ -113,28 +108,35 @@ public class RemovedSpotsActivity extends AppCompatActivity {
 
             @Override
             public void onGeoQueryError(FirebaseError error) {
-                    System.out.println("Error loading Firebase");
+                System.out.println("Error loading Firebase");
             }
         });
-
-        mAdapter = new FirebaseRecyclerAdapter<RemovedSpotItems, ReomvedSpotViewHolder>(RemovedSpotItems.class,R.layout.removed_spots_row, ReomvedSpotViewHolder.class,mFirebaseRef.child("markers")) {
+*/
+        mAdapter = new FirebaseRecyclerAdapter<SpotItem, AllSpotViewHolder>(SpotItem.class, R.layout.activity_all_spots_recycler_row, AllSpotViewHolder.class, mFirebaseRef.child("markers")) {
 
             @Override
-            protected void populateViewHolder(ReomvedSpotViewHolder viewHolder, RemovedSpotItems model, int position) {
+            public void onBindViewHolder(AllSpotViewHolder viewHolder, int position) {
+                super.onBindViewHolder(viewHolder, position);
+                viewHolder.setContext(AllSpotsActivity.this);
+            }
+
+            @Override
+            protected void populateViewHolder(AllSpotViewHolder viewHolder, SpotItem model, int position) {
                 super.populateViewHolder(viewHolder, model, position);
 
-                RemovedSpotItems model1 = removedSpots.get(position);
-                if(!TextUtils.isEmpty(model1.getDescription()))
+                try {
+                    viewHolder.latLng.setText(model.getL().get(0) + "/" + model.getL().get(1));
+                    viewHolder.status.setText(model.getStatus());
+                    viewHolder.description.setText(model.getDescription());
+                    viewHolder.place.setText(model.getPlace());
+                    if (model.getStatus().equals(Spot.SPOT_DIRTY))
+                        viewHolder.outer.setBackgroundColor(Color.RED);
+                    else
+                        viewHolder.outer.setBackgroundColor(Color.GREEN);
+                }catch(Exception ex)
                 {
-                    Log.v("DESC",model1.getDescription());
+                    ex.printStackTrace();
                 }
-              //  System.out.println(model1.getDescription());
-                if (!TextUtils.isEmpty(model1.getDescription())&&!TextUtils.isEmpty(model1.getStatus())) {
-                    viewHolder.description.setText(model1.getDescription());
-                    viewHolder.email.setText(model1.getStatus());
-                }
-
-
             }
 
         };
@@ -142,4 +144,5 @@ public class RemovedSpotsActivity extends AppCompatActivity {
         recycler.setAdapter(mAdapter);
 
     }
+
 }

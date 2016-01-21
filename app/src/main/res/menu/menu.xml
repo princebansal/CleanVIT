@@ -4,7 +4,7 @@
     tools:context="com.firebase.samples.logindemo.MainActivity">
     <item
         android:id="@+id/removed_spots"
-        android:title="Removed Spots"
+        android:title="All spots"
         android:orderInCategory="100"
         app:showAsAction="never" />
     <item

@@ -1,8 +1,8 @@
-package exam.vsrk.cleanvit.MapComponents.Maps;
+package com.gdgvitvellore.cleanvit;
 
-/**
- * Created by VSRK on 12/31/2015.
- */
+import java.io.Serializable;
+
+
 import com.google.android.gms.maps.model.Marker;
 
 import java.io.Serializable;

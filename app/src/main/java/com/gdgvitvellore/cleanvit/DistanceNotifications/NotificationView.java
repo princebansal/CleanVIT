@@ -1,4 +1,4 @@
-package exam.vsrk.cleanvit.MapComponents.Maps.DistanceNotifications;
+package com.gdgvitvellore.cleanvit.DistanceNotifications;
 
 /**
  * Created by VSRK on 1/2/2016.

@@ -1,14 +1,9 @@
-package exam.vsrk.cleanvit.MapComponents.Maps.DistanceNotifications;
+package com.gdgvitvellore.cleanvit.DistanceNotifications;
 
 import android.util.Log;
 
-import com.google.android.gms.maps.model.LatLng;
-
 import java.text.DecimalFormat;
 
-/**
- * Created by VSRK on 1/2/2016.
- */
 public class DistanceCalculator {
     public double CalculationByDistance(double latt1,double latt2,double lonn1,double lonn2) {
         int Radius = 6371;// radius of earth in Km

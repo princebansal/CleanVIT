@@ -1,4 +1,4 @@
-package exam.vsrk.cleanvit.MapComponents.Maps;
+package com.gdgvitvellore.cleanvit;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
@@ -6,7 +6,6 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
@@ -16,7 +15,6 @@ import android.content.CursorLoader;
 import android.content.Loader;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.AsyncTask;
 
 import android.os.Build;
 import android.os.Bundle;
@@ -46,8 +44,7 @@ import java.util.Map;
 import exam.vsrk.cleanvit.R;
 
 import static android.Manifest.permission.READ_CONTACTS;
-import static exam.vsrk.cleanvit.MapComponents.Maps.AppController.mFirebaseRef;
-import static exam.vsrk.cleanvit.MapComponents.Maps.AppController.mAuthData;
+import static com.gdgvitvellore.cleanvit.AppController.mFirebaseRef;
 
 
 /**

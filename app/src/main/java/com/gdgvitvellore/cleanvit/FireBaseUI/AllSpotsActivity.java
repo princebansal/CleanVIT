@@ -1,32 +1,22 @@
-package exam.vsrk.cleanvit.MapComponents.Maps.FireBaseUI;
+package com.gdgvitvellore.cleanvit.FireBaseUI;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
-import android.util.Log;
-import android.view.View;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.firebase.client.Firebase;
-import com.firebase.geofire.GeoFire;
-import com.firebase.geofire.GeoLocation;
-import com.firebase.geofire.GeoQuery;
 import com.firebase.ui.FirebaseRecyclerAdapter;
-import com.google.android.gms.maps.model.LatLng;
+import com.gdgvitvellore.cleanvit.FireBaseUI.SpotItem;
+import com.gdgvitvellore.cleanvit.Spot;
 
-import java.util.ArrayList;
 import java.util.List;
 
-import exam.vsrk.cleanvit.MapComponents.Maps.MainActivity;
-import exam.vsrk.cleanvit.MapComponents.Maps.Spot;
 import exam.vsrk.cleanvit.R;
 
-import static exam.vsrk.cleanvit.MapComponents.Maps.AppController.mFirebaseRef;
+import static com.gdgvitvellore.cleanvit.AppController.mFirebaseRef;
+
 
 /**
  * Created by VSRK on 12/31/2015.

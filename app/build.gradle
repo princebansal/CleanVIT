@@ -3,9 +3,8 @@ apply plugin: 'com.android.application'
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
-
     defaultConfig {
-        applicationId "exam.vsrk.cleanvit"
+        applicationId 'com.prince.android'
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 1
@@ -17,18 +16,18 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE-FIREBASE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE.txt'
 
 
-        packagingOptions {
-            exclude 'META-INF/LICENSE'
-            exclude 'META-INF/LICENSE-FIREBASE.txt'
-            exclude 'META-INF/NOTICE'
-            exclude 'META-INF/DEPENDENCIES'
-            exclude 'META-INF/LICENSE.txt'
-
-
-        }
     }
+    productFlavors {
+    }
+}
 
 
 dependencies {
@@ -44,7 +43,4 @@ dependencies {
     compile 'com.sothree.slidinguppanel:library:3.2.1'
     compile 'com.android.support:recyclerview-v7:23.1.1'
     compile 'com.firebaseui:firebase-ui:0.3.0'
-
-
-
 }

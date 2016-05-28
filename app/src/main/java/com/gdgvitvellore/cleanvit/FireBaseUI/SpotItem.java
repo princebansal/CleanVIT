@@ -1,12 +1,9 @@
-package exam.vsrk.cleanvit.MapComponents.Maps.FireBaseUI;
+package com.gdgvitvellore.cleanvit.FireBaseUI;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.util.ArrayList;
 
-/**
- * Created by VSRK on 1/1/2016.
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 
 public class SpotItem {

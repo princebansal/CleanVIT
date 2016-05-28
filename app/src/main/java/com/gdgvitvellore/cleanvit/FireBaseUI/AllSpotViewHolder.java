@@ -1,19 +1,15 @@
-package exam.vsrk.cleanvit.MapComponents.Maps.FireBaseUI;
+package com.gdgvitvellore.cleanvit.FireBaseUI;
 
-import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import exam.vsrk.cleanvit.MapComponents.Maps.MainActivity;
+import com.gdgvitvellore.cleanvit.MainActivity;
+
 import exam.vsrk.cleanvit.R;
 
-/**
- * Created by alfainfinity on 07/01/16.
- */
 public class AllSpotViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
     TextView latLng;
     TextView description;

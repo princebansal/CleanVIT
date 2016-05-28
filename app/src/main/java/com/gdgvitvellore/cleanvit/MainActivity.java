@@ -1,8 +1,6 @@
-package exam.vsrk.cleanvit.MapComponents.Maps;
+package com.gdgvitvellore.cleanvit;
 
-/**
- * Created by VSRK on 12/31/2015.
- */
+
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
@@ -10,7 +8,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 
-import exam.vsrk.cleanvit.MapComponents.Maps.DistanceNotifications.LocationService;
 
 import android.location.Address;
 import android.location.Geocoder;
@@ -41,17 +38,17 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
-import com.firebase.client.snapshot.DoubleNode;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
+import com.gdgvitvellore.cleanvit.DistanceNotifications.LocationService;
+import com.gdgvitvellore.cleanvit.FireBaseUI.AllSpotsActivity;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -63,14 +60,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import exam.vsrk.cleanvit.MapComponents.Maps.FireBaseUI.AllSpotsActivity;
 import exam.vsrk.cleanvit.R;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
-import static android.Manifest.permission.READ_CONTACTS;
-import static exam.vsrk.cleanvit.MapComponents.Maps.AppController.mAuthData;
-import static exam.vsrk.cleanvit.MapComponents.Maps.AppController.mFirebaseRef;
+import static com.gdgvitvellore.cleanvit.AppController.mAuthData;
+import static com.gdgvitvellore.cleanvit.AppController.mFirebaseRef;
 
 
 public class MainActivity extends AppCompatActivity implements GeoQueryEventListener,
@@ -571,7 +566,7 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         /* If a user is currently authenticated, display a logout menu */
-        if (AppController.mAuthData != null) {
+        if (mAuthData != null) {
             getMenuInflater().inflate(R.menu.menu, menu);
             return true;
         } else {
@@ -597,7 +592,7 @@ public class MainActivity extends AppCompatActivity implements GeoQueryEventList
      * Unauthenticate from Firebase and from providers where necessary.
      */
     private void logout() {
-        if (AppController.mAuthData != null) {
+        if (mAuthData != null) {
             /* logout of Firebase */
             mFirebaseRef.unauth();
 
